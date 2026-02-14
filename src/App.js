@@ -56,7 +56,7 @@ const HomePage = () => {
               I'm Mark
             </Typography>
             <Typography variant="h3" sx={{ mb: 4, color: 'primary.main', fontFamily: 'Arial, sans-serif' }}>
-              Software Engineer & Game Developer
+              Software Developer | IT Professional
             </Typography>
             <Typography sx={{ mb: 4 }}>
               I am passionate for crafting innovative solutions, creating interactive experiences, and bridging the gap between technology and user engagement.
