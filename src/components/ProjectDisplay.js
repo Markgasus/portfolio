@@ -64,8 +64,7 @@ function ProjectDisplay({ logo, name, image, link }) {
       sx={paperStyles}
       onMouseEnter={() => !isMobile && setIsHovered(true)}
       onMouseLeave={() => !isMobile && setIsHovered(false)}
-      // TODO: Improve look of ProjectDetail before allowing for clicking
-      // onClick={() => navigate(link)}
+      onClick={() => navigate(link)}
     >
       <Box sx={backgroundStyles} />
       <img src={logo} alt={name} style={logoStyles} />
