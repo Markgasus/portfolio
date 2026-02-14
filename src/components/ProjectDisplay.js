@@ -53,7 +53,7 @@ function ProjectDisplay({ logo, name, image, link }) {
     top: -50,
     left: '50%',
     transform: 'translateX(-50%)',
-    opacity: isMobile ? 1 : (isHovered ? 1 : 0),
+    // opacity: isMobile ? 1 : (isHovered ? 1 : 0),
     transition: 'opacity 0.3s',
     zIndex: 2,
   };
@@ -64,7 +64,8 @@ function ProjectDisplay({ logo, name, image, link }) {
       sx={paperStyles}
       onMouseEnter={() => !isMobile && setIsHovered(true)}
       onMouseLeave={() => !isMobile && setIsHovered(false)}
-      onClick={() => navigate(link)}
+      // TODO: Improve look of ProjectDetail before allowing for clicking
+      // onClick={() => navigate(link)}
     >
       <Box sx={backgroundStyles} />
       <img src={logo} alt={name} style={logoStyles} />

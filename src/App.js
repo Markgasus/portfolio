@@ -59,11 +59,7 @@ const HomePage = () => {
               Software Developer | IT Professional
             </Typography>
             <Typography sx={{ mb: 4 }}>
-              I am passionate for crafting innovative solutions, creating interactive experiences, and bridging the gap between technology and user engagement.
-              With experience spanning software engineering, game development, and system design, I bring technical expertise 
-              and creativity to every project. I have built immersive worlds using Unity and Unreal Engine while also developing 
-              robust backend systems, scalable applications, and engaging user interfaces. Whether it's general-purpose software or crafting games 
-              I am always eager to learn and tackle new challenges.
+              I bring dreams to life through interactive games and experiences built with emerging technologies. With a background spanning software engineering and game development, I craft solutions that blend technical depth with creative vision. I've built immersive worlds in Unity and Unreal Engine—always focused on making technology feel seamless for users. Whether I'm engineering software or creating interactive experiences, I'm driven by curiosity and the challenge of turning ambitious ideas into reality.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
               {/* Social Media Links */}
