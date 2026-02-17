@@ -24,10 +24,20 @@ const ProjectDetail = () => {
         { name: "Astron", image: process.env.PUBLIC_URL + "/assets/Astron.png" },
       ],
     },
-    toontag: {  // Match the lowercase URL from App.js
-      title: "Toon Tag Remake",
+    toontag: {
+      title: "Disney's Toon Tag Attraction Recreation",
       logo: process.env.PUBLIC_URL + "/assets/Toon_Tag.png?v=1",
-      description: "A faithful recreation of the classic Toontown minigame that captures the nostalgic atmosphere of Epcot from the late 90s and early 2000s. Utilizing Unreal Engine's Blueprint system, the game features enhanced network replication and smooth gameplay mechanics. The project involved carefully porting and optimizing 3D assets from the original Panda3D engine to Unreal Engine through Autodesk Maya, ensuring an authentic yet modernized experience.",
+      media: [
+        {
+          type: 'image',
+          src: process.env.PUBLIC_URL + '/assets/Internet_Zone.jpg',
+        },
+        {
+          type: 'image',
+          src: process.env.PUBLIC_URL + '/assets/Cabinet.jpg',
+        },
+      ],
+      description: "A faithful recreation of the classic ToonTag attraction once located inside EPCOT in the late 1990s and early 2000s, this project captures the nostalgic atmosphere of Disney’s Internet Zone. Built in Unreal Engine using C++ and Blueprints, the online multiplayer experience allows players to step into the world as a Unreal MetaHuman character, freely explore the venue, and approach interactive ToonTag arcade cabinets to seamlessly join real-time Tag matches with other players. The project emphasizes smooth gameplay and robust network replication, with core systems developed in C++ and gameplay logic implemented through Blueprints. Additionally, 3D assets were carefully ported and optimized from the original Panda3D engine into Unreal Engine via Autodesk Maya—preserving the authentic feel while delivering a modernized experience.",
       skills: [
         { name: "Unreal Engine", image: process.env.PUBLIC_URL + "/assets/UnrealEngine.png" },
         { name: "C++", image: process.env.PUBLIC_URL + "/assets/C++.png" },
@@ -58,6 +68,58 @@ const ProjectDetail = () => {
               marginBottom: '2rem' 
             }} 
           />
+          {/* optional media items (images or videos) displayed beneath logo in a 2x2 grid */}
+          {project.media && Array.isArray(project.media) && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 2,
+                width: '100%',
+                justifyItems: 'center',
+                mb: 4,
+              }}
+            >
+              {project.media.map((m, idx) => (
+                <React.Fragment key={idx}>
+                  {m.type === 'image' && (
+                    <img
+                      src={m.src}
+                      alt={`${project.title} screenshot ${idx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                      }}
+                    />
+                  )}
+                  {m.type === 'video' && (
+                    <video
+                      controls
+                      src={m.src}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </Box>
+          )}
+
+          {/* project title or section heading inserted before description */}
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              mb: 2,
+              textAlign: 'left',
+              width: '100%',
+            }}
+          >
+            {project.title}
+          </Typography>
+
           <Typography variant="body1" sx={{ mb: 4, textAlign: 'left' }}>{project.description}</Typography>
           
           <Box sx={{ width: '100%' }}>

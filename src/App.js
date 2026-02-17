@@ -56,10 +56,10 @@ const HomePage = () => {
               I'm Mark
             </Typography>
             <Typography variant="h3" sx={{ mb: 4, color: 'primary.main', fontFamily: 'Arial, sans-serif' }}>
-              Software Developer | IT Professional
+              Software Developer IT Professional
             </Typography>
             <Typography sx={{ mb: 4 }}>
-              I bring dreams to life through interactive games and experiences built with emerging technologies. With a background spanning software engineering and game development, I craft solutions that blend technical depth with creative vision. I've built immersive worlds in Unity and Unreal Engine—always focused on making technology feel seamless for users. Whether I'm engineering software or creating interactive experiences, I'm driven by curiosity and the challenge of turning ambitious ideas into reality.
+              I’m a versatile tech professional with experience in software engineering, game development, and IT support. I started in game development with Unreal Engine, Unity, and Panda3D, honing my coding, problem-solving, and system design skills. I currently work in IT at Great Wolf Lodge, maintaining and supporting resort-wide systems. While I value hands-on IT experience, my long-term goal is to grow into a full-time Software Engineer role, driven by problem solving and a passion for creating efficient, engaging technology solutions.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
               {/* Social Media Links */}
