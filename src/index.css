@@ -11,3 +11,77 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Particles background */
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  /* Dark blue nebula background while keeping overall darkness */
+  background:
+    radial-gradient(ellipse at 20% 25%, rgba(4,18,36,0.7) 0%, rgba(4,18,36,0.0) 30%),
+    radial-gradient(ellipse at 80% 75%, rgba(6,28,56,0.65) 0%, rgba(6,28,56,0.0) 28%),
+    radial-gradient(ellipse at 50% 45%, rgba(10,40,90,0.5) 0%, rgba(10,40,90,0.0) 45%),
+    linear-gradient(180deg, #00020a 0%, #000000 100%);
+  background-blend-mode: screen, screen, screen, normal;
+  pointer-events: none;
+}
+
+#particles-js canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Space-themed divider */
+.space-divider {
+  height: 4px;
+  width: 72%;
+  margin-left: auto;
+  margin-right: auto;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(42,124,255,0.85), rgba(255,255,255,0.04));
+  box-shadow: 0 0 28px rgba(42,124,255,0.18), inset 0 0 8px rgba(255,255,255,0.03);
+  border-radius: 2px;
+  position: relative;
+  overflow: visible;
+}
+
+.space-divider::before {
+  content: "";
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: -8px;
+  height: 20px;
+  background-image:
+    radial-gradient(circle at 8% 30%, rgba(255,255,255,0.95) 1px, transparent 3px),
+    radial-gradient(circle at 26% 60%, rgba(255,255,255,0.9) 1px, transparent 3px),
+    radial-gradient(circle at 54% 40%, rgba(255,255,255,0.85) 1px, transparent 3px),
+    radial-gradient(circle at 82% 65%, rgba(255,255,255,0.9) 1px, transparent 3px);
+  background-repeat: no-repeat;
+  filter: blur(1px);
+  opacity: 0.85;
+  pointer-events: none;
+  animation: spaceTwinkle 3.5s ease-in-out infinite;
+}
+
+@keyframes spaceTwinkle {
+  0% { opacity: 0.55; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+  100% { opacity: 0.6; transform: translateY(0); }
+}
+
+/* Floating avatar animation */
+.floating-avatar {
+  display: inline-block;
+  animation: floatY 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes floatY {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}

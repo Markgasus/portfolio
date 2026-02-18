@@ -20,7 +20,7 @@ const ProjectDetail = () => {
       description: "Designed and implemented client and server-side gameplay functionality and systems for a large-scale MMO powered by Astron, Panda3D, and Python, serving over 2 million registered users and supporting thousands of concurrent players.",
       skills: [
         { name: "Python", image: process.env.PUBLIC_URL + "/assets/Python.png" },
-        { name: "Panda3D", image: process.env.PUBLIC_URL + "/assets/Panda3D.png" },
+        { name: "Panda3D", image: process.env.PUBLIC_URL + "/assets/panda3d.png" },
         { name: "Astron", image: process.env.PUBLIC_URL + "/assets/Astron.png" },
       ],
     },

@@ -4,6 +4,7 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ProjectDisplay from './components/ProjectDisplay';
 import ProjectDetail from './components/ProjectDetail'; // Import the new ProjectDetail component
+import ParticleBackground from './components/ParticleBackground';
 import { motion } from 'framer-motion';
 import { HashRouter as Router, Route, Routes } from 'react-router-dom'; // Use HashRouter for hash-based URLs
 
@@ -20,7 +21,8 @@ const HomePage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 10, backgroundColor: 'background.default', color: 'text.primary' }}>
+    <Box sx={{ minHeight: '100vh', py: 10, backgroundColor: 'transparent', color: 'text.primary' }}>
+      <ParticleBackground />
       {/* Under Construction Banner
       <Box
         sx={{
@@ -59,7 +61,7 @@ const HomePage = () => {
               Software Developer IT Professional
             </Typography>
             <Typography sx={{ mb: 4 }}>
-              I’m a versatile tech professional with experience in software engineering, game development, and IT support. I started in game development with Unreal Engine, Unity, and Panda3D, honing my coding, problem-solving, and system design skills. I currently work in IT at Great Wolf Lodge, maintaining and supporting resort-wide systems. While I value hands-on IT experience, my long-term goal is to grow into a full-time Software Engineer role, driven by problem solving and a passion for creating efficient, engaging technology solutions.
+              I'm a versatile tech professional with a background in software/game development and IT support, currently maintaining resort-wide systems at Great Wolf Lodge while pursuing a full-time Software Engineer role focused on building efficient, engaging technology solutions.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
               {/* Social Media Links */}
@@ -94,6 +96,7 @@ const HomePage = () => {
             transition={{ duration: 1.1, delay: 0.1 }}
           >
             <Avatar
+              className="floating-avatar"
               alt="Mark Francalangia"
               src={`${process.env.PUBLIC_URL}/assets/Mark.jpg`}
               sx={{ width: '100%', height: 'auto', maxWidth: 400 }}
@@ -102,7 +105,7 @@ const HomePage = () => {
         </Grid>
       </Container>
 
-      <Divider sx={{ my: 10, backgroundColor: 'primary.main' }} />
+      <Box className="space-divider" sx={{ my: 10 }} />
 
       {/* Projects Section */}
       <Container id="projects" sx={{ pb: 5, my: 5 }}>
