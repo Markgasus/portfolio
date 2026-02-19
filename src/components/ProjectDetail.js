@@ -20,7 +20,7 @@ const ProjectDetail = () => {
       logo: process.env.PUBLIC_URL + "/assets/TTR.png?v=1",
       skills: [
         { name: "Python", image: process.env.PUBLIC_URL + "/assets/Python.png" },
-        { name: "Panda3D", image: process.env.PUBLIC_URL + "/assets/panda3d.png" },
+        { name: "Panda3D", image: process.env.PUBLIC_URL + "/assets/Panda3D.png" },
         { name: "Astron", image: process.env.PUBLIC_URL + "/assets/Astron.png" },
       ],
       sections: [
