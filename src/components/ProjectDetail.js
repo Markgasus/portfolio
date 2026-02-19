@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react'; // Import useEffect
 import { Container, Typography, Box, Grid, Button } from '@mui/material'; // Import Button
+import '../index.css';
+import ParticleBackground from './ParticleBackground';
 import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { motion } from 'framer-motion';
 
@@ -15,17 +17,31 @@ const ProjectDetail = () => {
   // Project data
   const projectData = {
     TTR: {
-      title: "Toontown Rewritten",
       logo: process.env.PUBLIC_URL + "/assets/TTR.png?v=1",
-      description: "Designed and implemented client and server-side gameplay functionality and systems for a large-scale MMO powered by Astron, Panda3D, and Python, serving over 2 million registered users and supporting thousands of concurrent players.",
       skills: [
         { name: "Python", image: process.env.PUBLIC_URL + "/assets/Python.png" },
         { name: "Panda3D", image: process.env.PUBLIC_URL + "/assets/panda3d.png" },
         { name: "Astron", image: process.env.PUBLIC_URL + "/assets/Astron.png" },
       ],
+      sections: [
+        {
+          title: 'What is Toontown Rewritten?',
+          text: 'Toontown is a classic MMO that I grew up with. When Disney shut it down in 2013, it felt like losing a piece of my childhood, so the community decided to bring it back to life! In Toontown, you create your own Toon character and battle the "Cogs", corporate robots trying to ruin all the fun!',
+          image: process.env.PUBLIC_URL + '/assets/TTR_screenshot.jpg',
+        },
+        {
+          title: 'Game Development',
+          text: 'I work on Toontown gameplay, making the client and server communicate in real-time. I code in Python with Panda3D, use Astron for networking, and spend most of my time in PyCharm writing and debugging. I work on enhancing legacy Toontown code, applying OOP principles, and ensuring the codebase stays organized.',
+          image: process.env.PUBLIC_URL + '/assets/TTR_Dev.png',
+        },
+        {
+          title: 'Panda3D Game Engine',
+          text: 'Panda3D challenges me as a programmer in a way most modern engines don\'t — no editor, no click and drag, no visual helpers, everything is strictly done through code. It\'s nothing like Unity or Unreal, but that challenge is what makes it so rewarding and has made me think a lot deeper about game development as a whole.',
+          image: process.env.PUBLIC_URL + '/assets/TTR_Panda.png',
+        },
+      ],
     },
     toontag: {
-      title: "Disney's Toon Tag Attraction Recreation",
       logo: process.env.PUBLIC_URL + "/assets/Toon_Tag.png?v=1",
       media: [
         {
@@ -37,10 +53,26 @@ const ProjectDetail = () => {
           src: process.env.PUBLIC_URL + '/assets/Cabinet.jpg',
         },
       ],
-      description: "A faithful recreation of the classic ToonTag attraction once located inside EPCOT in the late 1990s and early 2000s, this project captures the nostalgic atmosphere of Disney’s Internet Zone. Built in Unreal Engine using C++ and Blueprints, the online multiplayer experience allows players to step into the world as a Unreal MetaHuman character, freely explore the venue, and approach interactive ToonTag arcade cabinets to seamlessly join real-time Tag matches with other players. The project emphasizes smooth gameplay and robust network replication, with core systems developed in C++ and gameplay logic implemented through Blueprints. Additionally, 3D assets were carefully ported and optimized from the original Panda3D engine into Unreal Engine via Autodesk Maya—preserving the authentic feel while delivering a modernized experience.",
       skills: [
         { name: "Unreal Engine", image: process.env.PUBLIC_URL + "/assets/UnrealEngine.png" },
         { name: "C++", image: process.env.PUBLIC_URL + "/assets/C++.png" },
+      ],
+      sections: [
+        {
+          title: 'Overview',
+          text: 'A faithful recreation of the classic ToonTag attraction from EPCOT’s Internet Zone era.',
+          image: process.env.PUBLIC_URL + '/assets/Internet_Zone.jpg',
+        },
+        {
+          title: 'Gameplay',
+          text: 'Built as an online multiplayer experience with real-time Tag matches and replicated gameplay systems.',
+          image: process.env.PUBLIC_URL + '/assets/Cabinet.jpg',
+        },
+        {
+          title: 'Pipeline',
+          text: 'Ported and optimized assets from Panda3D into Unreal Engine through Autodesk Maya workflows.',
+          image: process.env.PUBLIC_URL + '/assets/Toon_Tag_Key_Art.png',
+        },
       ],
     },
   };
@@ -54,105 +86,68 @@ const ProjectDetail = () => {
     return <Typography variant="h5" sx={{ textAlign: 'center', py: 5 }}>Project not found.</Typography>;
   }
 
+  const sections = project.sections;
+
   return (
-    <Box sx={{ minHeight: '100vh', py: 5, backgroundColor: 'background.default', color: 'text.primary' }}>
-      <Container component={motion.div} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.5 } } }}>
-        {/* Centered Project Content */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '800px', mx: 'auto' }}>
-          <img 
-            src={project.logo} 
-            alt={project.title} 
-            style={{ 
-              width: '60%', 
-              height: 'auto', 
-              marginBottom: '2rem' 
-            }} 
-          />
-          {/* optional media items (images or videos) displayed beneath logo in a 2x2 grid */}
-          {project.media && Array.isArray(project.media) && (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 2,
-                width: '100%',
-                justifyItems: 'center',
-                mb: 4,
-              }}
-            >
-              {project.media.map((m, idx) => (
-                <React.Fragment key={idx}>
-                  {m.type === 'image' && (
-                    <img
-                      src={m.src}
-                      alt={`${project.title} screenshot ${idx + 1}`}
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                      }}
-                    />
-                  )}
-                  {m.type === 'video' && (
-                    <video
-                      controls
-                      src={m.src}
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                      }}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
-            </Box>
-          )}
+    <Box sx={{ minHeight: '100vh', py: 5, backgroundColor: 'transparent', color: 'text.primary' }}>
+      <ParticleBackground />
+      <Container maxWidth="xl" component={motion.div} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.5 } } }}>
+        <Grid container spacing={4} alignItems="flex-start" justifyContent="center">
+          <Grid item xs={12} md={10}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+              <img
+                className="floating-avatar"
+                src={project.logo}
+                alt="Project logo"
+                style={{
+                  width: '100%',
+                  maxWidth: 500,
+                  height: 'auto',
+                  marginBottom: '1rem',
+                  alignSelf: 'center',
+                }}
+              />
 
-          {/* project title or section heading inserted before description */}
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 'bold',
-              mb: 2,
-              textAlign: 'left',
-              width: '100%',
-            }}
-          >
-            {project.title}
-          </Typography>
-
-          <Typography variant="body1" sx={{ mb: 4, textAlign: 'left' }}>{project.description}</Typography>
-          
-          <Box sx={{ width: '100%' }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 2,
-                textDecoration: 'underline',
-                textUnderlineOffset: '5px',
-                fontWeight: 'bold',
-                textAlign: 'left',
-                alignSelf: 'flex-start'
-              }}
-            >
-              Technologies Used
-            </Typography>
-            <Grid container spacing={2} justifyContent="flex-start" sx={{ maxWidth: '400px' }}>
-              {project.skills.map((skill, index) => (
-                <Grid item xs={4} sm={3} key={index} display="flex" flexDirection="column" alignItems="center">
-                  <img src={skill.image} alt={skill.name} style={{ width: '50px', height: '50px' }} />
-                  <Typography variant="body2" sx={{ textAlign: 'center', fontSize: '1.1rem' }}>{skill.name}</Typography>
+              
+              {/* Three descriptive boxes with images */}
+              <Box sx={{ mt: 3 }}>
+                <Grid container spacing={3} justifyContent="center">
+                  {sections.map((section, i) => {
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={i}>
+                        <Box sx={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 2, overflow: 'hidden' }}>
+                          <img src={section.image} alt={`${section.title} image`} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                          <Box sx={{ p: 2 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: '700', mb: 1, textAlign: 'left' }}>{section.title}</Typography>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'left' }}>{section.text}</Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Box>
+              </Box>
 
-        {/* Back to Home Button */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Button variant="contained" onClick={() => navigate('/')}> {/* Adapted for HashRouter */}
-            Back to Home
-          </Button>
-        </Box>
+              {/* Skills left-aligned under content */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'flex-start', width: '100%', mt: 2 }}>
+                {project.skills.map((skill, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)', padding: '8px 12px', borderRadius: 8 }}>
+                    <img src={skill.image} alt={skill.name} style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'left' }}>{skill.name}</Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              {/* Back button centered (moved from sidebar) */}
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Button variant="contained" onClick={() => navigate('/')}>Back to Home</Button>
+              </Box>
+
+            </Box>
+          </Grid>
+
+          
+        </Grid>
       </Container>
     </Box>
   );
