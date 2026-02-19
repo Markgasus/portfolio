@@ -61,7 +61,7 @@ const HomePage = () => {
               Software Developer IT Professional
             </Typography>
             <Typography sx={{ mb: 4 }}>
-              I'm a versatile tech professional with a background in software/game development and IT support, currently maintaining resort-wide systems at Great Wolf Lodge while pursuing a full-time Software Engineer role focused on building efficient, engaging technology solutions.
+              I'm a versatile tech professional with a background in software/game development and IT support, currently maintaining resort-wide systems at Great Wolf Lodge while pursuing a full-time Software Engineer role. I strive to bring the imaginary to life through technology.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
               {/* Social Media Links */}
