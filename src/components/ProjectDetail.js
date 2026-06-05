@@ -43,6 +43,7 @@ const ProjectDetail = () => {
     },
     toontag: {
       logo: process.env.PUBLIC_URL + "/assets/Toon_Tag.png?v=1",
+      playNowLink: 'https://markgasus.itch.io/toon-tag',
       media: [
         {
           type: 'image',
@@ -108,9 +109,26 @@ const ProjectDetail = () => {
                 }}
               />
 
-              
+              {/* Play Now button below the logo */}
+              {project.playNowLink && (
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size="large"
+                    sx={{ minWidth: 220, py: 1.5 }}
+                    component="a"
+                    href={project.playNowLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Play Now!
+                  </Button>
+                </Box>
+              )}
+
               {/* Three descriptive boxes with images */}
-              <Box sx={{ mt: 3 }}>
+              <Box sx={{ mt: 0 }}>
                 <Grid container spacing={3} justifyContent="center">
                   {sections.map((section, i) => {
                     return (
@@ -138,9 +156,9 @@ const ProjectDetail = () => {
                 ))}
               </Box>
 
-              {/* Back button centered (moved from sidebar) */}
+              {/* Back button centered below the content */}
               <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <Button variant="contained" onClick={() => navigate('/')}>Back to Home</Button>
+                <Button variant="contained" size="large" sx={{ minWidth: 180, py: 1.5 }} onClick={() => navigate('/')}>Back to Home</Button>
               </Box>
 
             </Box>
