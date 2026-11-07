@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#102a23">
+  <meta name="description" content="Play Bust-a-Cog, the Bossbot HQ Country Club golf puzzle, in your browser. Match golf balls, bounce off the walls, and clear every Cog.">
+  <title>Bust-a-Cog • Mark's Arcade</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="back" href="../../#/">← Back to portfolio</a>
+    <span class="arcade">MARK'S ARCADE <span class="live-dot"></span></span>
+    <button id="help" class="quiet">How to play <span aria-hidden="true">?</span></button>
+  </header>
+  <main>
+    <div class="masthead">
+      <p class="eyebrow">BOSSBOT HQ · COUNTRY CLUB</p>
+      <h1>Bust<span class="title-a">a</span>Cog</h1>
+      <p class="subtitle">A little golf. A lot of trouble for the Cogs.</p>
+    </div>
+    <div class="play-layout">
+      <section class="game-column" aria-label="Bust-a-Cog game">
+        <div class="scorebar">
+          <div><span id="mode-label">PRACTICE</span><strong id="board-label">Board 04</strong></div>
+          <div><span>COGS LEFT</span><strong id="cogs">1</strong></div>
+          <div><span id="time-label">SHOTS</span><strong id="time">0</strong></div>
+        </div>
+        <div class="board-shell">
+          <canvas id="game" tabindex="0" aria-label="Golf puzzle. Left and right arrows to aim. Space or Enter to fire. P to pause." aria-describedby="controls-text"></canvas>
+          <div class="tee-label">NEXT</div>
+          <div id="toast" class="toast" role="status" aria-live="polite"></div>
+          <div id="overlay" class="overlay">
+            <div class="menu-card">
+              <span id="menu-kicker" class="eyebrow">WELCOME TO THE GREEN</span>
+              <h2 id="menu-title">Ready to tee off?</h2>
+              <p id="menu-copy">Match three golf balls of the same color. Knock every Cog off the board to win.</p>
+              <div id="setup">
+                <fieldset class="mode-picker"><legend class="sr-only">Game mode</legend>
+                  <label><input type="radio" name="mode" value="practice" checked><span>Practice</span></label>
+                  <label><input type="radio" name="mode" value="challenge"><span>Challenge</span></label>
+                </fieldset>
+                <p id="mode-hint" class="hint">Pick any of the 17 original boards. Take your time.</p>
+                <div id="practice-settings">
+                  <label class="select-label" for="board-select">CHOOSE A BOARD</label>
+                  <select id="board-select"></select>
+                  <label class="check-label"><input id="moving" type="checkbox"> Move the board down every 10 seconds</label>
+                </div>
+              </div>
+              <button id="start" class="primary" disabled>Loading the green…</button>
+              <button id="menu-secondary" class="text-button" hidden>Choose another board</button>
+              <p id="load-status" class="hint">Loading original artwork and sounds</p>
+            </div>
+          </div>
+        </div>
+        <div class="play-controls">
+          <button id="pause" class="quiet" disabled>Pause</button>
+          <button id="fire" class="fire" disabled>Fire ball <kbd>SPACE</kbd></button>
+          <button id="sound" class="quiet" aria-pressed="false">Sound on</button>
+        </div>
+        <p id="controls-text" class="controls-text">Move to aim · Click to shoot · Touch and release to fire<br><span>Keyboard: ← → to aim, Space to shoot, P to pause</span></p>
+      </section>
+      <aside class="club-card">
+        <div class="club-emblem" aria-hidden="true">⚑</div>
+        <p class="eyebrow">YOUR SCORECARD</p>
+        <div class="score"><strong id="score">0</strong><span>POINTS</span></div>
+        <div class="score-details"><span>Best challenge</span><strong id="best">—</strong></div>
+        <div class="score-details"><span>On the tee</span><strong id="ball-name">Red ball</strong></div>
+        <div id="descent" class="descent"><span id="descent-label">A little room to practice</span><div><i id="descent-meter"></i></div></div>
+        <hr>
+        <h2>Clear the green.</h2>
+        <p>Match <strong>three or more</strong> balls of one color. Break the balls holding up a Cog to send it tumbling.</p>
+        <p>Bank shots off the side walls to reach a tricky spot. The next ball is shown beside your tee.</p>
+        <div class="powerups">
+          <div><span class="power-icon bomb">✹</span><p><strong>Bombs</strong>Clear nearby balls.</p></div>
+          <div><span class="power-icon wild">?</span><p><strong>Wild balls</strong>Match any color.</p></div>
+        </div>
+        <button id="new-game" class="outline">New game</button>
+        <p class="fine-print">A browser port of the original Country Club puzzle. Single player, no download needed.</p>
+      </aside>
+    </div>
+  </main>
+  <footer>Adapted for the web by Mark Francalangia <span>·</span> Original game and artwork © Disney</footer>
+  <dialog id="instructions" aria-labelledby="help-title">
+    <button id="close-help" class="close" aria-label="Close instructions">×</button>
+    <p class="eyebrow">COUNTRY CLUB FIELD GUIDE</p>
+    <h2 id="help-title">Give the Cogs the boot.</h2>
+    <ol>
+      <li><strong>Aim and fire.</strong> Move your mouse and click the green. On a touchscreen, drag to aim and release to shoot. You can also use the arrow keys and Space.</li>
+      <li><strong>Make a match.</strong> Connect at least three balls of the same color. Anything left hanging falls away.</li>
+      <li><strong>Clear every Cog.</strong> The balls with grinning Cog faces are your targets. You do not have to clear the whole board.</li>
+    </ol>
+    <p>Red flame balls award a bomb. Blue question balls award a wild ball. Match them like regular red or blue balls. Steel balls resist matches and bombs, but can still fall.</p>
+    <p><strong>Challenge:</strong> clear four boards in two minutes. The board drops every ten seconds. If it reaches the tee, the run ends. Practice lets you choose a board and turn the moving board on or off.</p>
+    <p class="hint">P or Escape pauses. Leaving this tab pauses automatically. Your best completed challenge is saved in this browser.</p>
+    <button id="got-it" class="primary">Got it</button>
+  </dialog>
+  <noscript><p class="noscript">Enable JavaScript to play Bust-a-Cog.</p></noscript>
+  <script type="module" src="./game.mjs"></script>
+</body>
+</html>
