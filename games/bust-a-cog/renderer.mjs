@@ -24,7 +24,7 @@ export class BoardRenderer {
     this.uiCamera = new THREE.OrthographicCamera(-4 / 3, 4 / 3, 1, -1, .01, 100);
     this.uiCamera.up.set(0, 0, 1); this.uiCamera.position.set(0, -10, 0); this.uiCamera.lookAt(0, 0, 0);
     this.templates = {};
-    const response = await fetch('./assets/original-scene.json');
+    const response = await fetch('./assets/original-scene.json?v=minnie-2');
     if (!response.ok) throw new Error('Original game assets could not load.');
     const data = await response.json(), textures = {}, loader = new THREE.TextureLoader();
     await Promise.all([...new Set(Object.values(data).flat().map(m => m.texture).filter(Boolean))].map(async file => {
@@ -56,20 +56,10 @@ export class BoardRenderer {
     this.shooter = this.model('shooter'); hpr(this.shooter, 90, 0, 90);
     this.shooter.scale.set(.3, .3, .15); this.shooter.position.set(0, 0, -1.58); this.frame.add(this.shooter);
     this.aimer = new THREE.Group(); this.aimer.add(this.model('shooter_moving')); this.shooter.add(this.aimer);
-    this.frame2d = new THREE.Group(); this.frame2d.scale.setScalar(1.1); this.hud.add(this.frame2d);
-    this.buttons = {};
-    this.addButton('exit', .95, -.69, 'exit_text'); this.addButton('help', .95, -.82, 'help_text');
     this.puzzles = new THREE.Group(); this.puzzles.position.z = .90; this.hud.add(this.puzzles);
     const panel = new THREE.Mesh(new THREE.PlaneGeometry(.7, .1), new THREE.MeshBasicMaterial({ color: new THREE.Color(.737, .573, .345), transparent: true, opacity: .3, depthWrite: false }));
     panel.rotation.x = Math.PI / 2; panel.position.y = .02; this.puzzles.add(panel);
     this.timer = this.model('clock'); this.timer.scale.setScalar(.45); this.timer.position.set(1.16, 0, .58); this.hud.add(this.timer);
-    this.instructions = new THREE.Group(); this.frame2d.add(this.instructions); this.instructions.visible = false;
-    const dialog = this.model('dialog', true); dialog.scale.set(1.2, 1, 1);
-    dialog.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, .75); }); this.instructions.add(dialog);
-    this.instructions.add(this.model('directions'));
-    const cog = this.model('ball_cog', true); hpr(cog, 0, 90, 0); cog.scale.setScalar(.12); cog.position.set(0, -.05, -.2);
-    cog.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, .75); }); this.instructions.add(cog);
-    this.close = this.model('close'); this.close.position.set(0, -.05, -.4); this.instructions.add(this.close);
     this.message = new THREE.Group(); this.message.position.y = -.3; this.hud.add(this.message);
     this.observer = new ResizeObserver(() => this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)); this.observer.observe(canvas);
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
@@ -79,32 +69,19 @@ export class BoardRenderer {
     if (ownMaterials) object.traverse(m => { if (m.isMesh) m.material = m.material.clone(); });
     return object;
   }
-  addButton(id, x, z, label) {
-    const group = new THREE.Group(); group.position.set(x, -1, z); this.frame2d.add(group);
-    const image = this.model('button'); image.scale.set(.9, 1, 1); group.add(image);
-    const text = this.model(label); text.position.y = -.02; group.add(text);
-    this.buttons[id] = { group, image, text, label, state: 'button' };
-  }
-  buttonState(id, state) {
-    const b = this.buttons[id]; if (!b || b.state === state) return;
-    b.group.remove(b.image); b.image = this.model(state); b.image.scale.set(.9, 1, 1); b.group.add(b.image); b.state = state;
-  }
   setLabel(parent, key, name) {
     if (parent.userData[key] === name) return;
     if (parent.userData[key + 'Object']) parent.remove(parent.userData[key + 'Object']);
     const label = this.model(name); label.position.y = -.02; parent.add(label);
     parent.userData[key] = name; parent.userData[key + 'Object'] = label;
   }
-  setHud(left, time, instructions, state) {
+  setHud(left, time, state) {
     this.setLabel(this.puzzles, 'label', 'puzzles' + left);
     this.setLabel(this.timer, 'label', 'timer' + Math.max(0, Math.min(120, Math.ceil(time))));
-    this.instructions.visible = instructions;
     this.puzzles.visible = !['success', 'failure'].includes(state); this.timer.visible = this.puzzles.visible;
     const message = ['paused', 'success', 'failure'].includes(state) ? state : null;
     if (message) this.setLabel(this.message, 'label', message);
     this.message.visible = !!message;
-    const b = this.buttons.help, label = ['success', 'failure'].includes(state) ? 'replay_text' : 'help_text';
-    if (b.label !== label) { b.group.remove(b.text); b.text = this.model(label); b.text.position.y = -.02; b.group.add(b.text); b.label = label; }
   }
   ball(type) {
     const group = this.model(names[type], true); group.scale.setScalar(1.4); group.userData.type = type;
@@ -130,11 +107,11 @@ export class BoardRenderer {
     }
     this.placeBall(this[which], x, y, height);
   }
-  burst(balls) {
+  burst(balls, { black = false } = {}) {
     this.frame.updateMatrixWorld(true);
     for (const ball of balls) {
       const mesh = this.ball(ball.type); this.placeBall(mesh, ball.x, ball.y); this.frame.add(mesh); this.scene.attach(mesh);
-      mesh.traverse(m => { if (m.isMesh) m.material.depthWrite = false; });
+      mesh.traverse(m => { if (m.isMesh) { m.material.depthWrite = false; if (black) m.material.color.setRGB(0, 0, 0); } });
       const n = Math.random(); this.particles.push({ mesh, age: 0, life: .5 + Math.random(), vx: 20 - n * 40, vy: -20 + n * 40, vz: 30 });
     }
   }

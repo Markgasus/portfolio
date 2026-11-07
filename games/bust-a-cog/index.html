@@ -6,21 +6,16 @@
   <meta name="theme-color" content="#000000">
   <meta name="description" content="The original Bossbot HQ Country Club golf puzzle, ported to the browser.">
   <title>Bust-a-Cog</title>
-  <link rel="stylesheet" href="./style.css?v=original-1">
+  <link rel="stylesheet" href="./style.css?v=minnie-2">
 </head>
 <body>
   <main id="viewport" aria-label="Bust-a-Cog">
     <canvas id="game" tabindex="0" aria-label="Bust-a-Cog. Move the mouse to aim and click to shoot. Arrow keys aim and Space fires. P pauses, M toggles sound, R restarts." aria-describedby="instructions-text"></canvas>
-    <a id="exit" class="hit-target" href="../../#/" aria-label="Exit for Now"></a>
-    <button id="help" class="hit-target" aria-label="How to Play"></button>
-    <section id="instructions" role="dialog" aria-label="How to Play" aria-modal="true" hidden>
-      <p id="instructions-text" class="sr-only">Shoot balls using the mouse. Matching three of a color causes the balls to fall. Remove all Cog balls from the board.</p>
-      <button id="close-help" class="hit-target" aria-label="Close instructions"></button>
-    </section>
+    <p id="instructions-text" class="sr-only">Shoot balls using the mouse. Matching three of a color causes the balls to fall. Remove all Cog balls from the board. Press R to restart, or tap the board after the game ends.</p>
     <div id="loading" role="status">Loading...</div>
     <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
     <noscript>JavaScript is required to play.</noscript>
   </main>
-  <script type="module" src="./game.mjs?v=original-1"></script>
+  <script type="module" src="./game.mjs?v=minnie-2"></script>
 </body>
 </html>
