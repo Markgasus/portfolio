@@ -13,3 +13,5 @@ main{max-width:1160px;margin:auto;padding:20px 24px 0}.masthead{text-align:cente
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 
 @media(min-width:701px){.game-column{max-width:min(620px,max(350px,calc((100svh - 370px)*.86957)))}}
+.overlay{overflow-y:auto;align-items:safe center}
+@media(max-width:360px){.overlay{padding:10px}.menu-card{padding:14px}.menu-card .select-label{margin-top:10px}.menu-card .mode-picker{margin-top:10px;padding:3px}.mode-picker span{padding:6px}}
