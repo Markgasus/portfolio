@@ -1,141 +1,178 @@
 import * as THREE from './vendor/three.module.js';
-import { COLS, ROWS, position, LAUNCH_Y, MIN_X, MAX_X, MAX_Y, RADIUS, DY } from './engine.mjs';
+import { COLS, ROWS, position, LAUNCH_Y } from './engine.mjs';
 
-const modelNames = ['ball_red', 'ball_blue', 'ball_green', 'ball_cog', 'ball_white', 'ball_purple', 'ball_yello', 'ball_fire', 'ball_unknown', 'ball_steel', 'ball_fire', 'ball_unknown'];
+const RAD = Math.PI / 180;
+const names = ['ball_red', 'ball_blue', 'ball_green', 'ball_cog', 'ball_white', 'ball_purple', 'ball_yello', 'ball_white', 'ball_white', 'ball_steel', 'ball_fire', 'ball_unknown'];
+const axisX = new THREE.Vector3(1, 0, 0), axisY = new THREE.Vector3(0, 1, 0), axisZ = new THREE.Vector3(0, 0, 1);
+function hpr(object, h, p, r) {
+  object.quaternion.setFromAxisAngle(axisZ, h * RAD)
+    .multiply(new THREE.Quaternion().setFromAxisAngle(axisX, p * RAD))
+    .multiply(new THREE.Quaternion().setFromAxisAngle(axisY, r * RAD));
+}
 export class BoardRenderer {
   async init(canvas) {
-    this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setClearColor(0x000000, 0);
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(-10, 10, 18, -5, .1, 100);
-    this.camera.position.z = 40;
+    this.canvas = canvas; this.particles = []; this.balls = new Map(); this.clock = 0;
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // Match Panda3D's original texture/vertex color pipeline.
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    this.renderer.autoClear = false; this.renderer.setClearColor(0x4c4c4c);
+    this.scene = new THREE.Scene(); this.hud = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(46.8265, 4 / 3, .1, 1500);
+    this.camera.up.set(0, 0, 1); this.camera.position.set(0, 12, 27);
+    this.camera.lookAt(0, 12 - Math.cos(70 * RAD), 27 - Math.sin(70 * RAD));
+    this.uiCamera = new THREE.OrthographicCamera(-4 / 3, 4 / 3, 1, -1, .01, 100);
+    this.uiCamera.up.set(0, 0, 1); this.uiCamera.position.set(0, -10, 0); this.uiCamera.lookAt(0, 0, 0);
     this.templates = {};
-    const response = await fetch('./assets/models.json');
-    if (!response.ok) throw new Error('The game artwork could not load.');
-    const data = await response.json(), textures = {};
-    const loader = new THREE.TextureLoader();
+    const response = await fetch('./assets/original-scene.json');
+    if (!response.ok) throw new Error('Original game assets could not load.');
+    const data = await response.json(), textures = {}, loader = new THREE.TextureLoader();
     await Promise.all([...new Set(Object.values(data).flat().map(m => m.texture).filter(Boolean))].map(async file => {
       const texture = await loader.loadAsync('./assets/' + file);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-      textures[file] = texture;
+      texture.colorSpace = THREE.NoColorSpace; texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy(); textures[file] = texture;
     }));
     for (const [name, meshes] of Object.entries(data)) {
       const group = new THREE.Group();
       for (const m of meshes) {
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(m.positions, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(m.uvs, 2));
-        geo.setAttribute('color', new THREE.Float32BufferAttribute(m.colors, 4));
-        geo.setIndex(m.indices);
-        const material = new THREE.MeshBasicMaterial({ map: textures[m.texture] || null, vertexColors: true, side: THREE.DoubleSide, transparent: true, alphaTest: .025, depthWrite: true });
-        const mesh = new THREE.Mesh(geo, material); mesh.name = m.name; group.add(mesh);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(m.positions, 3));
+        geometry.setAttribute('uv', new THREE.Float32BufferAttribute(m.uvs, 2));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(m.colors, 4)); geometry.setIndex(m.indices);
+        const material = new THREE.MeshBasicMaterial({ map: textures[m.texture] || null, vertexColors: true, side: THREE.DoubleSide, transparent: m.transparent, alphaTest: m.transparent ? .001 : 0 });
+        const mesh = new THREE.Mesh(geometry, material); mesh.name = m.name; group.add(mesh);
       }
       this.templates[name] = group;
     }
-    this.background = this.templates.background.clone();
-    this.background.scale.set(.3, -.2, .25);
-    this.background.position.set(0, 8, -3);
-    this.scene.add(this.background);
-    this.holes = new THREE.Group();
+    this.scene.add(this.model('room'));
+    const green = this.model('golf_green'); green.scale.setScalar(.24); this.scene.add(green);
+    this.frame = new THREE.Group(); hpr(this.frame, 0, 90, 0); this.frame.position.set(0, 10, 2); this.scene.add(this.frame);
+    const background = this.model('background'); hpr(background, 0, -90, 0); background.scale.set(.3, .2, .25); background.position.set(0, -1.5, 8); this.frame.add(background);
+    this.holes = [];
     for (let row = 0; row < ROWS; row++) for (let col = 0; col < COLS; col++) {
-      const hole = this.templates.hole.clone();
-      hole.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.opacity = .42; } });
-      const p = position(col, row); hole.position.set(p.x, p.y, -.8); hole.scale.setScalar(1.05);
-      this.holes.add(hole);
+      const hole = this.model('hole', true); hpr(hole, -90, 0, 90); hole.scale.setScalar(1.2);
+      hole.userData = { col, row }; this.frame.add(hole); this.holes.push(hole);
     }
-    this.scene.add(this.holes);
-    this.shooter = this.templates.shooter.clone();
-    this.shooter.scale.set(.3, .3, .15);
-    this.shooter.position.set(0, LAUNCH_Y, -.4);
-    this.scene.add(this.shooter);
-    this.balls = new Map(); this.particles = [];
-    this.aim = new THREE.Group();
-    const dotGeo = new THREE.CircleGeometry(.055, 10), dotMat = new THREE.MeshBasicMaterial({ color: 0xffecc3, transparent: true, opacity: .7, depthTest: false });
-    for (let i = 0; i < 40; i++) this.aim.add(new THREE.Mesh(dotGeo, dotMat));
-    this.scene.add(this.aim);
-    this.observer = new ResizeObserver(() => {
-      this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-    });
-    this.observer.observe(canvas);
+    this.shooter = this.model('shooter'); hpr(this.shooter, 90, 0, 90);
+    this.shooter.scale.set(.3, .3, .15); this.shooter.position.set(0, 0, -1.58); this.frame.add(this.shooter);
+    this.aimer = new THREE.Group(); this.aimer.add(this.model('shooter_moving')); this.shooter.add(this.aimer);
+    this.frame2d = new THREE.Group(); this.frame2d.scale.setScalar(1.1); this.hud.add(this.frame2d);
+    this.buttons = {};
+    this.addButton('exit', .95, -.69, 'exit_text'); this.addButton('help', .95, -.82, 'help_text');
+    this.puzzles = new THREE.Group(); this.puzzles.position.z = .90; this.hud.add(this.puzzles);
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(.7, .1), new THREE.MeshBasicMaterial({ color: new THREE.Color(.737, .573, .345), transparent: true, opacity: .3, depthWrite: false }));
+    panel.rotation.x = Math.PI / 2; panel.position.y = .02; this.puzzles.add(panel);
+    this.timer = this.model('clock'); this.timer.scale.setScalar(.45); this.timer.position.set(1.16, 0, .58); this.hud.add(this.timer);
+    this.instructions = new THREE.Group(); this.frame2d.add(this.instructions); this.instructions.visible = false;
+    const dialog = this.model('dialog', true); dialog.scale.set(1.2, 1, 1);
+    dialog.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, .75); }); this.instructions.add(dialog);
+    this.instructions.add(this.model('directions'));
+    const cog = this.model('ball_cog', true); hpr(cog, 0, 90, 0); cog.scale.setScalar(.12); cog.position.set(0, -.05, -.2);
+    cog.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, .75); }); this.instructions.add(cog);
+    this.close = this.model('close'); this.close.position.set(0, -.05, -.4); this.instructions.add(this.close);
+    this.message = new THREE.Group(); this.message.position.y = -.3; this.hud.add(this.message);
+    this.observer = new ResizeObserver(() => this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)); this.observer.observe(canvas);
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
   }
+  model(name, ownMaterials = false) {
+    const object = this.templates[name].clone();
+    if (ownMaterials) object.traverse(m => { if (m.isMesh) m.material = m.material.clone(); });
+    return object;
+  }
+  addButton(id, x, z, label) {
+    const group = new THREE.Group(); group.position.set(x, -1, z); this.frame2d.add(group);
+    const image = this.model('button'); image.scale.set(.9, 1, 1); group.add(image);
+    const text = this.model(label); text.position.y = -.02; group.add(text);
+    this.buttons[id] = { group, image, text, label, state: 'button' };
+  }
+  buttonState(id, state) {
+    const b = this.buttons[id]; if (!b || b.state === state) return;
+    b.group.remove(b.image); b.image = this.model(state); b.image.scale.set(.9, 1, 1); b.group.add(b.image); b.state = state;
+  }
+  setLabel(parent, key, name) {
+    if (parent.userData[key] === name) return;
+    if (parent.userData[key + 'Object']) parent.remove(parent.userData[key + 'Object']);
+    const label = this.model(name); label.position.y = -.02; parent.add(label);
+    parent.userData[key] = name; parent.userData[key + 'Object'] = label;
+  }
+  setHud(left, time, instructions, state) {
+    this.setLabel(this.puzzles, 'label', 'puzzles' + left);
+    this.setLabel(this.timer, 'label', 'timer' + Math.max(0, Math.min(120, Math.ceil(time))));
+    this.instructions.visible = instructions;
+    this.puzzles.visible = !['success', 'failure'].includes(state); this.timer.visible = this.puzzles.visible;
+    const message = ['paused', 'success', 'failure'].includes(state) ? state : null;
+    if (message) this.setLabel(this.message, 'label', message);
+    this.message.visible = !!message;
+    const b = this.buttons.help, label = ['success', 'failure'].includes(state) ? 'replay_text' : 'help_text';
+    if (b.label !== label) { b.group.remove(b.text); b.text = this.model(label); b.text.position.y = -.02; b.group.add(b.text); b.label = label; }
+  }
   ball(type) {
-    const group = this.templates[modelNames[type]].clone();
-    group.scale.setScalar(1.4);
-    if (type === 4) group.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.set(0x33333b); } });
+    const group = this.model(names[type], true); group.scale.setScalar(1.4); group.userData.type = type;
+    if (type === 4) group.traverse(m => { if (m.isMesh) m.material.color.setRGB(0, 0, 0); });
     return group;
   }
-  setPreview(which, type, x, y, size) {
-    if (!this[which] || this[which].userData.type !== type) {
-      if (this[which]) this.scene.remove(this[which]);
-      this[which] = this.ball(type); this[which].userData.type = type; this.scene.add(this[which]);
+  placeBall(ball, x, y, height = .5) {
+    ball.position.set(x, height, y); hpr(ball, 0, 95 - y * 2, 0);
+    if (ball.userData.type !== 4) ball.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, 1); });
+    if (ball.userData.type === 7 || ball.userData.type === 8) {
+      const bomb = ball.userData.type === 7;
+      const colors = bomb ? [[1,.5,0],[0,0,0]] : [[1,.2,.2],[.7,.8,1],[0,1,0],[1,1,0]];
+      const phase = this.clock * (bomb ? 9 : 6), n = Math.floor(phase), t = phase - n;
+      const a = colors[n % colors.length], b = colors[(n + 1) % colors.length];
+      ball.traverse(m => { if (m.isMesh) m.material.color.setRGB(...a.map((v,i) => v + (b[i] - v) * t)); });
     }
-    this[which].position.set(x, y, .4); this[which].scale.setScalar(size);
+  }
+  disposeBall(ball) { ball.removeFromParent(); ball.traverse(m => { if (m.isMesh) m.material.dispose(); }); }
+  preview(which, type, x, y, height) {
+    if (!this[which] || this[which].userData.type !== type) {
+      if (this[which]) this.disposeBall(this[which]);
+      this[which] = this.ball(type); this.frame.add(this[which]);
+    }
+    this.placeBall(this[which], x, y, height);
   }
   burst(balls) {
+    this.frame.updateMatrixWorld(true);
     for (const ball of balls) {
-      const mesh = this.ball(ball.type); mesh.position.set(ball.x, ball.y, 1);
-      mesh.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.depthWrite = false; } });
-      this.scene.add(mesh);
-      this.particles.push({ mesh, life: 0, falling: ball.falling, vx: (Math.random() - .5) * 5, vy: ball.falling ? 1 : 3 });
+      const mesh = this.ball(ball.type); this.placeBall(mesh, ball.x, ball.y); this.frame.add(mesh); this.scene.attach(mesh);
+      mesh.traverse(m => { if (m.isMesh) m.material.depthWrite = false; });
+      const n = Math.random(); this.particles.push({ mesh, age: 0, life: .5 + Math.random(), vx: 20 - n * 40, vy: -20 + n * 40, vz: 30 });
     }
   }
   clearEffects() {
-    for (const p of this.particles || []) this.disposeParticle(p);
-    this.particles = [];
-  }
-  disposeParticle(p) {
-    this.scene.remove(p.mesh);
-    p.mesh.traverse(m => { if (m.isMesh) m.material.dispose(); });
+    for (const p of this.particles || []) this.disposeBall(p.mesh); this.particles = []; this.displayNotch = 0;
   }
   draw(game, angle, dt) {
+    this.clock += dt; this.displayNotch = Math.min(game.notch, (this.displayNotch || 0) + dt * 2);
     const active = new Set();
     for (const [id, cell] of game.cells) {
-      active.add(id);
-      let ball = this.balls.get(id);
-      if (ball && ball.userData.type !== cell.type) { this.scene.remove(ball); this.balls.delete(id); ball = null; }
-      if (!ball) { ball = this.ball(cell.type); ball.userData.type = cell.type; this.balls.set(id, ball); this.scene.add(ball); }
-      const p = position(cell.col, cell.row, game.notch); ball.position.set(p.x, p.y, .1);
+      active.add(id); let ball = this.balls.get(id);
+      if (ball && ball.userData.type !== cell.type) { this.disposeBall(ball); this.balls.delete(id); ball = null; }
+      if (!ball) { ball = this.ball(cell.type); this.balls.set(id, ball); this.frame.add(ball); }
+      const p = position(cell.col, cell.row, this.displayNotch); this.placeBall(ball, p.x, p.y);
+      if (game.status === 'lost') ball.traverse(m => { if (m.isMesh) m.material.color.setRGB(0, 0, 0); });
     }
-    for (const [id, ball] of this.balls) if (!active.has(id)) { this.scene.remove(ball); this.balls.delete(id); }
-    this.holes.position.y = -game.notch * DY;
-    this.holes.children.forEach((hole, i) => { hole.visible = Math.floor(i / COLS) > game.notch; });
-    this.shooter.rotation.z = Math.PI - angle;
+    for (const [id, ball] of this.balls) if (!active.has(id)) { this.disposeBall(ball); this.balls.delete(id); }
+    for (const hole of this.holes) {
+      const { col, row } = hole.userData, p = position(col, row, this.displayNotch);
+      hole.position.set(p.x, -.2, p.y); hole.visible = row > game.notch;
+      const cell = game.cells.get(row * COLS + col), tint = !cell ? 1 : cell.type === 3 ? 0 : .6;
+      hole.traverse(m => { if (m.isMesh) m.material.color.setRGB(tint, tint, tint); });
+    }
+    this.aimer.rotation.z = angle - Math.PI / 2;
     const p = game.projectile;
-    this.setPreview('shot', p ? p.type : game.current, p ? p.x : 0, p ? p.y : LAUNCH_Y, 1.4);
-    this.shot.visible = game.status !== 'won';
-    this.setPreview('preview', game.next, 3.7, -3.25, 1.05);
-    this.aim.visible = game.status === 'playing' && !p;
-    let x = 0, y = LAUNCH_Y, vx = Math.sin(angle), vy = Math.cos(angle), ended = false;
-    for (const dot of this.aim.children) {
-      x += vx * .42; y += vy * .42;
-      if (x < MIN_X + RADIUS) { x = 2 * (MIN_X + RADIUS) - x; vx *= -1; }
-      if (x > MAX_X - RADIUS) { x = 2 * (MAX_X - RADIUS) - x; vx *= -1; }
-      if (y > MAX_Y - RADIUS - game.notch * DY || [...game.cells.values()].some(c => {
-        const q = position(c.col, c.row, game.notch); return (x - q.x) ** 2 + (y - q.y) ** 2 < 1.34;
-      })) ended = true;
-      dot.visible = !ended; dot.position.set(x, y, .3);
-    }
+    this.preview('shot', p ? p.type : game.current, p ? p.x : 0, p ? p.y : LAUNCH_Y, p ? .5 : .7);
+    this.shot.visible = game.status !== 'won' && game.status !== 'lost'; this.preview('standby', game.next, 0, -3, .7);
     for (const particle of this.particles) {
-      particle.life += dt; particle.vy -= dt * 18;
-      particle.mesh.position.x += particle.vx * dt; particle.mesh.position.y += particle.vy * dt;
-      particle.mesh.rotation.z += dt * particle.vx;
-      particle.mesh.traverse(m => { if (m.isMesh) m.material.opacity = Math.max(0, 1 - particle.life / .8); });
+      particle.age += dt; particle.vz -= 64 * dt;
+      particle.mesh.position.x += particle.vx * dt; particle.mesh.position.y += particle.vy * dt; particle.mesh.position.z += particle.vz * dt;
+      particle.mesh.traverse(m => { if (m.isMesh) m.material.opacity = Math.max(0, 1 - particle.age / particle.life); });
     }
-    this.particles = this.particles.filter(particle => {
-      if (particle.life < .8) return true;
-      this.disposeParticle(particle); return false;
-    });
-    this.renderer.render(this.scene, this.camera);
+    this.particles = this.particles.filter(p => { if (p.age < p.life) return true; this.disposeBall(p.mesh); return false; });
+    this.renderer.clear(); this.renderer.render(this.scene, this.camera); this.renderer.clearDepth(); this.renderer.render(this.hud, this.uiCamera);
   }
   pointer(clientX, clientY) {
-    const r = this.canvas.getBoundingClientRect();
-    const x = (clientX - r.left) / r.width * 20 - 10;
-    const y = 18 - (clientY - r.top) / r.height * 23;
-    return Math.max(-Math.PI / 2 + .2, Math.min(Math.PI / 2 - .2, Math.atan2(x, Math.max(.15, y - LAUNCH_Y))));
+    const r = this.canvas.getBoundingClientRect(), x = (clientX - r.left) / r.width * 2 - 1, y = 1 - (clientY - r.top) / r.height * 2;
+    // DistributedGolfGreenGame.__run: zGap = .092, the original mouse calculation.
+    return Math.max(-Math.PI / 2 + .2, Math.min(Math.PI / 2 - .2, -Math.atan2(x * (4 / 3 / .908), Math.max(.0001, y + .816))));
   }
 }
