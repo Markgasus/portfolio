@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import { COLS, ROWS, position, LAUNCH_Y } from './engine.mjs';
+import { COLS, ROWS, position, LAUNCH_Y, RADIUS } from './engine.mjs';
 
 const RAD = Math.PI / 180;
 const names = ['ball_red', 'ball_blue', 'ball_green', 'ball_cog', 'ball_white', 'ball_purple', 'ball_yello', 'ball_white', 'ball_white', 'ball_steel', 'ball_fire', 'ball_unknown'];
@@ -79,7 +79,7 @@ export class BoardRenderer {
     this.setLabel(this.puzzles, 'label', 'puzzles' + left);
     this.setLabel(this.timer, 'label', 'timer' + Math.max(0, Math.min(120, Math.ceil(time))));
     this.puzzles.visible = !['success', 'failure'].includes(state); this.timer.visible = this.puzzles.visible;
-    const message = ['paused', 'success', 'failure'].includes(state) ? state : null;
+    const message = ['success', 'failure'].includes(state) ? state : null;
     if (message) this.setLabel(this.message, 'label', message);
     this.message.visible = !!message;
   }
@@ -88,7 +88,8 @@ export class BoardRenderer {
     if (type === 4) group.traverse(m => { if (m.isMesh) m.material.color.setRGB(0, 0, 0); });
     return group;
   }
-  placeBall(ball, x, y, height = .5) {
+  // Anesidora setup() raises spriteNode to radiusBall, above the launcher.
+  placeBall(ball, x, y, height = RADIUS) {
     ball.position.set(x, height, y); hpr(ball, 0, 95 - y * 2, 0);
     if (ball.userData.type !== 4) ball.traverse(m => { if (m.isMesh) m.material.color.setRGB(1, 1, 1); });
     if (ball.userData.type === 7 || ball.userData.type === 8) {
@@ -131,14 +132,14 @@ export class BoardRenderer {
     for (const [id, ball] of this.balls) if (!active.has(id)) { this.disposeBall(ball); this.balls.delete(id); }
     for (const hole of this.holes) {
       const { col, row } = hole.userData, p = position(col, row, this.displayNotch);
-      hole.position.set(p.x, -.2, p.y); hole.visible = row > game.notch;
+      hole.position.set(p.x, 0, p.y); hole.visible = row > game.notch;
       const cell = game.cells.get(row * COLS + col), tint = !cell ? 1 : cell.type === 3 ? 0 : .6;
       hole.traverse(m => { if (m.isMesh) m.material.color.setRGB(tint, tint, tint); });
     }
     this.aimer.rotation.z = angle - Math.PI / 2;
     const p = game.projectile;
-    this.preview('shot', p ? p.type : game.current, p ? p.x : 0, p ? p.y : LAUNCH_Y, p ? .5 : .7);
-    this.shot.visible = game.status !== 'won' && game.status !== 'lost'; this.preview('standby', game.next, 0, -3, .7);
+    this.preview('shot', p ? p.type : game.current, p ? p.x : 0, p ? p.y : LAUNCH_Y);
+    this.shot.visible = game.status !== 'won' && game.status !== 'lost'; this.preview('standby', game.next, 0, -3);
     for (const particle of this.particles) {
       particle.age += dt; particle.vz -= 64 * dt;
       particle.mesh.position.x += particle.vx * dt; particle.mesh.position.y += particle.vy * dt; particle.mesh.position.z += particle.vz * dt;

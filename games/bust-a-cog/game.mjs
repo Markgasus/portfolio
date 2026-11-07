@@ -1,11 +1,11 @@
 import { GolfGame, position } from './engine.mjs';
-import { BoardRenderer } from './renderer.mjs?v=minnie-2';
+import { BoardRenderer } from './renderer.mjs?v=launcher-3';
 import boards from './boards.mjs';
 
 const $ = id => document.getElementById(id);
 const renderer = new BoardRenderer(), keys = new Set(), sounds = {};
 let game, order = [], completed = 0, remaining = 120, state = 'loading', angle = 0;
-let last = 0, transition = 0, pendingFailure = false, muted = false, autoPaused = false, pointerId = null;
+let last = 0, deadline = 0, transition = 0, pendingFailure = false, muted = false, pointerId = null;
 for (const name of ['fire', 'land', 'pop', 'bomb', 'lose', 'win', 'move', 'done']) {
   sounds[name] = new Audio(`./assets/${name}.ogg`); sounds[name].preload = 'auto'; sounds[name].volume = .4;
 }
@@ -21,15 +21,12 @@ function startBoard(index, preserveEffects = false) {
   state = 'playing'; transition = 0; pendingFailure = false;
 }
 function begin() {
-  order = []; completed = 0; remaining = 120; autoPaused = false;
+  order = []; completed = 0; remaining = 120;
+  last = performance.now(); deadline = last + remaining * 1000;
   const pool = boards.map((_, i) => i);
   while (order.length < 4) order.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
   startBoard(order[0]);
   $('game').focus({ preventScroll: true }); announce('Puzzles Left: 4');
-}
-function togglePause() {
-  if (state === 'playing') { game.pause(); state = 'paused'; keys.clear(); }
-  else if (state === 'paused') { game.start(); state = 'playing'; }
 }
 function shoot() { if (state === 'playing') game.shoot(angle); }
 $('game').addEventListener('pointerdown', event => {
@@ -50,7 +47,6 @@ $('game').addEventListener('pointerup', event => {
 $('game').addEventListener('pointercancel', () => { pointerId = null; });
 document.addEventListener('keydown', event => {
   if (state === 'loading' || state === 'error') return;
-  if (['p', 'P', 'Escape'].includes(event.key)) { event.preventDefault(); togglePause(); return; }
   if (['m', 'M'].includes(event.key)) { muted = !muted; announce(muted ? 'Sound off' : 'Sound on'); return; }
   if (['r', 'R'].includes(event.key)) { begin(); return; }
   if (['BUTTON', 'A'].includes(event.target.tagName)) return;
@@ -60,13 +56,11 @@ document.addEventListener('keydown', event => {
   }
 });
 document.addEventListener('keyup', event => keys.delete(event.key));
-function suspend() {
+function clearInput() {
   keys.clear(); pointerId = null;
-  if (state === 'playing') { togglePause(); autoPaused = true; }
 }
-function restore() { if (autoPaused && state === 'paused' && !document.hidden) { togglePause(); autoPaused = false; } }
-window.addEventListener('blur', suspend); window.addEventListener('focus', restore);
-document.addEventListener('visibilitychange', () => document.hidden ? suspend() : restore());
+window.addEventListener('blur', clearInput);
+document.addEventListener('visibilitychange', clearInput);
 $('game').addEventListener('webglcontextlost', event => {
   event.preventDefault(); state = 'error'; $('loading').hidden = false; $('loading').textContent = 'Graphics interrupted. Reload to play again.';
 });
@@ -75,15 +69,16 @@ function finish(success) {
   sound('done'); announce((success ? 'Success!' : 'Out of Time!') + ' Press R or tap the board to play again.');
 }
 function frame(now) {
-  const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
+  const elapsed = Math.max(0, (now - last) / 1000), dt = Math.min(.05, elapsed); last = now;
   if (state === 'playing') {
-    remaining = Math.max(0, remaining - dt);
+    // Background tabs can stop animation frames; elapsed time still counts.
+    remaining = Math.max(0, (deadline - now) / 1000);
     if (keys.has('ArrowLeft')) angle += dt * 1.5;
     if (keys.has('ArrowRight')) angle -= dt * 1.5;
     angle = Math.max(-Math.PI / 2 + .2, Math.min(Math.PI / 2 - .2, angle));
     if (remaining <= 0) finish(false);
     else if (transition > 0) {
-      transition -= dt;
+      transition -= elapsed;
       if (transition <= 0) {
         if (pendingFailure) {
           renderer.burst([...game.cells.values()].map(c => ({ ...c, ...position(c.col, c.row, game.notch) })), { black: true });
@@ -92,7 +87,7 @@ function frame(now) {
         startBoard(order[completed], true);
       }
     } else {
-      game.tick(dt);
+      game.tick(elapsed);
       if (game.status === 'won') {
         renderer.burst([...game.cells.values()].map(c => ({ ...c, ...position(c.col, c.row, game.notch) })));
         game.cells.clear();
